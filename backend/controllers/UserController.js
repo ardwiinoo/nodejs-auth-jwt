@@ -1,12 +1,12 @@
 import User from "../models/User.js";
 import bycript from "bcrypt";
 import jwt from "jsonwebtoken";
-import { json } from "sequelize";
-
 class UserController {
   static async getUsers(req, res) {
     try {
-      const users = await User.findAll();
+      const users = await User.findAll({
+        attributes: ["id", "name", "email"], // hanya ambil ini saja
+      });
       return res.json({
         message: "Get Data User Successfully",
         users,
@@ -143,6 +143,38 @@ class UserController {
         message: "Login Failed",
       });
     }
+  }
+
+  static async logout(req, res) {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) return res.sendStatus(204); // no content
+
+    const user = await User.findOne({
+      where: {
+        refresh_token: refreshToken,
+      },
+    });
+
+    if (!user) return res.sendStatus(204); // no content
+
+    const userId = user.id;
+
+    // update refresh token
+    await user.update(
+      {
+        refresh_token: null,
+      },
+      {
+        where: {
+          id: userId,
+        },
+      }
+    );
+
+    // hapus cookie
+    res.clearCookie("refreshtoken");
+    return res.sendStatus(200); // success
   }
 }
 
