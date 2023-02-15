@@ -1,16 +1,26 @@
 import express from "express";
 import dotenv from "dotenv";
 import db from "./config/Database.js";
+import cookieParser from "cookie-parser";
 
 // routes
+import cors from "cors";
 import router from "./routes/api.js";
 
 // init app
 dotenv.config();
 const app = express();
 
-// agar bisa menerima request json
-app.use(express.json());
+// agar api dapat diakses luar domain
+app.use(
+  cors({
+    credentials: true,
+    origin: "http://localhost:3000",
+  })
+);
+
+app.use(cookieParser()); // parsing cookie
+app.use(express.json()); // agar bisa menerima request json
 
 // Database
 try {
